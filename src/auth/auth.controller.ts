@@ -9,11 +9,6 @@ import { loginDto } from './dto/login.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Get('/allUser')
-  getAllUser() {
-    return this.authService.getAlluser();
-  }
-
   @Get('/signup/otpG')
   generateOtP(@Body() generateDto: generateOtpDto) {
     return this.authService.genRateOTPforSignup(generateDto);
@@ -29,5 +24,9 @@ export class AuthController {
   @Get('/logIn')
   logIn(@Body() loginDto: loginDto) {
     return this.authService.login(loginDto);
+  }
+  @Get('/allUser')
+  getAllUser() {
+    return this.authService.getAlluser();
   }
 }
