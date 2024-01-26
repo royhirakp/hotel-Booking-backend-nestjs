@@ -5,9 +5,9 @@ import { UploadApiErrorResponse, UploadApiResponse, v2 } from 'cloudinary';
 export class ClodinaryService {
   constructor() {
     v2.config({
-      cloud_name: 'diaks6jaa',
-      api_key: '988398948338274',
-      api_secret: '_wn4d3AG-seq_AptjaCHB29wk8o',
+      cloud_name: process.env.CLOUDNARY_CLOUD_NAME,
+      api_key: process.env.CLOUDNARY_APIKEY,
+      api_secret: process.env.CLOUDNARY_API_SECRET,
     });
   }
   async uploadImage(
