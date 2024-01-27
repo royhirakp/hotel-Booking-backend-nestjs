@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { UploadApiErrorResponse, UploadApiResponse, v2 } from 'cloudinary';
 
+import { Model } from 'mongoose';
+import { Room } from './schemas/room.schema';
 @Injectable()
-export class ClodinaryService {
+export class CloudinaryuplodeService {
   constructor() {
     v2.config({
       cloud_name: process.env.CLOUDNARY_CLOUD_NAME,
