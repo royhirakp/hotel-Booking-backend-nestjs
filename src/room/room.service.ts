@@ -99,4 +99,5 @@ export class RoomService {
   async getRoomDataById() {}
   async getAllRooms() {}
   async bookRoom() {}
+  async searchRoomsByPlace() {}
 }
