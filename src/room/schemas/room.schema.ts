@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-
+//nb: for room booking revise dthe abalable dates data , a
+// amon kore data ta ready korte hbvbe jono room booking route a subida hoy
+// comment  e user er data add korte hbe / user er id add korte hbe jei user comment post korbe
+//add place name or any keyword array so that user can search by name of the hotel location
 @Schema({
   timestamps: true,
 })
@@ -40,16 +43,16 @@ export class Room extends Document {
   @Prop({ required: true })
   maxGuest: number;
 
-  @Prop({ type: [{ monthName: String, bookDates: [Number] }], required: true })
-  abilibiity: { monthName: string; bookDates: number[] }[];
+  @Prop({ type: [{ monthNmae: String, bookDates: [Number] }], required: true })
+  abilibiity: { monthNmae: string; bookDates: number[] }[];
 
   @Prop({
     type: [
       {
         userName: String,
-        message: String,
+        messege: String,
         userImage: String,
-        rating: Number,
+        ratting: Number,
         userEmail: String,
       },
     ],

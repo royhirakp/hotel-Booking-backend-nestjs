@@ -11,7 +11,7 @@ import { RoomSchema } from './schemas/room.schema';
 @Module({
   imports: [
     AuthModule,
-    MongooseModule.forFeature([{ name: 'hotelRoom', schema: RoomSchema }]),
+    MongooseModule.forFeature([{ name: 'hotelRoom2', schema: RoomSchema }]),
     MulterModule.register({
       dest: './uploads',
     }),

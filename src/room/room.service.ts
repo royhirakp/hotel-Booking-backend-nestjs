@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Room } from './schemas/room.schema';
@@ -6,7 +11,7 @@ import { Room } from './schemas/room.schema';
 @Injectable()
 export class RoomService {
   constructor(
-    @InjectModel('hotelRoom')
+    @InjectModel('hotelRoom2')
     private readonly roomModel: Model<Room>,
   ) {}
 
@@ -55,37 +60,7 @@ export class RoomService {
           { monthNmae: '10', bookDates: [] },
           { monthNmae: '11', bookDates: [2, 3, 4, 5, 6, 10] },
         ],
-        comments: [
-          {
-            userName: 'Hirak Roy',
-            messege: 'lore',
-            userImage: '/jd-chow-gutlccGLXKI-unsplash.jpg',
-            ratting: 5,
-            userEmail: 'royhirakp@gam.com',
-          },
-          {
-            userName: 'Bikram Rathod',
-            messege: 'lore',
-            userImage:
-              'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260',
-            ratting: 2,
-            userEmail: 'royhirakp@gam.com',
-          },
-          {
-            userName: 'Rahul Rajput',
-            messege: 'lore',
-            userImage: 'https://mui.com/static/images/avatar/3.jpg',
-            ratting: 1,
-            userEmail: 'royhirakp@gam.com',
-          },
-          {
-            userName: 'Rahul Rajput',
-            messege: 'lore',
-            userImage: 'https://mui.com/static/images/avatar/2.jpg',
-            ratting: 4,
-            userEmail: 'royhirakp@gam.com',
-          },
-        ],
+        comments: [],
       });
       return { upload };
       // const upload = await this.
@@ -95,9 +70,139 @@ export class RoomService {
     }
   }
 
-  async getRoomDataForHomePage() {}
-  async getRoomDataById() {}
-  async getAllRooms() {}
-  async bookRoom() {}
+  async getRoomDataForHomePage() {
+    try {
+      const roomsData = await this.roomModel.find({}).limit(4).exec();
+
+      if (!roomsData) {
+        throw new NotFoundException('No rooms found.');
+      }
+      return { status: 1, roomsData, totalrooms: roomsData?.length };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error; // Re-throw the NotFoundException as is
+      } else {
+        console.error(error);
+
+        throw new InternalServerErrorException(
+          'Internal server error occurred.',
+        );
+      }
+    }
+  }
+  async getRoomDataById(id: string) {
+    try {
+      if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
+        // Check if id is not provided or not a valid ObjectId
+        throw new BadRequestException('Invalid room ID.');
+      }
+      let room = await this.roomModel.findOne({ _id: id });
+      if (!room) {
+        throw new NotFoundException('No rooms found.');
+      }
+      return room;
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error; // Re-throw the NotFoundException as is
+      } else {
+        // console.error(error);
+        console.log('error come form the service error section');
+
+        throw new InternalServerErrorException(
+          'Internal server error occurred.',
+        );
+      }
+    }
+  }
+  async getAllRooms() {
+    try {
+      const roomsData = await this.roomModel.find({}).exec();
+
+      if (!roomsData) {
+        throw new NotFoundException('No rooms found.');
+      }
+      return { status: 1, roomsData, totalrooms: roomsData?.length };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error; // Re-throw the NotFoundException as is
+      } else {
+        console.error(error);
+
+        throw new InternalServerErrorException(
+          'Internal server error occurred.',
+        );
+      }
+    }
+  }
+  // async bookRoom(
+  //   roomId: string,
+  //   monthAndDate: { monthName: string; dates: string[] }[],
+  //   userId: string,
+  // ) {
+  //   try {
+  //     // update the roomData in the database
+  //     // add the booking details to the user data
+  //     let updateRoom = await this.roomModel.findByIdAndUpdate({
+  //       // _id:id
+  //     });
+  //   } catch (error) {}
+  // }
+
+  // async bookRoom(roomId: string, monthAndDate: { monthName: string; dates: string[] }[], userId: string) {
+  //   try {
+  //     // Find the room by ID
+  //     const room = await this.roomModel.findById(roomId);
+
+  //     if (!room) {
+  //       throw new NotFoundException('Room not found.');
+  //     }
+
+  //     // Update the room's availability based on the provided month and dates
+  //     monthAndDate.forEach(({ monthName, dates }) => {
+  //       const existingMonth = room.abilibiity.find(entry => entry.monthNmae === monthName);
+
+  //       if (existingMonth) {
+  //         existingMonth.bookDates = existingMonth.bookDates.filter(date => !dates.includes(date.toString()));
+  //       }
+  //     });
+
+  //     // Save the updated room data
+  //     const updatedRoom = await room.save();
+
+  //     // Find the user by ID
+  //     const user = await this.roomModel.findById(userId);
+
+  //     if (!user) {
+  //       throw new NotFoundException('User not found.');
+  //     }
+
+  //     // Add booking details to the user data
+  //     user.bookingDates.push({
+  //       hotelDetails: room.toObject(),
+  //       booking: monthAndDate.map(({ monthName, dates }) => ({ monthName, dates })),
+  //     });
+
+  //     // Save the updated user data
+  //     const updatedUser = await user.save();
+
+  //     // Return the updated room and user data
+  //     return { updatedRoom, updatedUser };
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw error; // Re-throw the NotFoundException as is
+  //     } else {
+  //       // Log the error for debugging purposes
+  //       console.error(error);
+
+  //       throw new InternalServerErrorException('Internal server error occurred.');
+  //     }
+  //   }
+  // }
+
   async searchRoomsByPlace() {}
+
+  async postAComment() {}
 }

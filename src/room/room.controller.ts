@@ -6,6 +6,8 @@ import {
   Controller,
   Get,
   UseGuards,
+  Param,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -43,6 +45,19 @@ export class RoomController {
       console.log('error on uploding', error);
       throw new Error('Failed to uplode');
     }
+  }
+
+  @Get('/home')
+  getRoomsForHomePage() {
+    return this.roomDataUpload.getRoomDataForHomePage();
+  }
+  @Get('/all')
+  getAllRooms() {
+    return this.roomDataUpload.getAllRooms();
+  }
+  @Get('/unit/:id')
+  getRoomsById(@Param('id') id: string) {
+    return this.roomDataUpload.getRoomDataById(id);
   }
 }
 

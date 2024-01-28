@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, SchemaTypes } from 'mongoose';
 
 @Schema({
   timestamps: true,
@@ -28,6 +28,20 @@ export class User extends Document {
 
   @Prop()
   gender: string;
+
+  @Prop({
+    type: [
+      {
+        hotelDetails: SchemaTypes.Mixed,
+        booking: [SchemaTypes.Date],
+      },
+    ],
+    required: true,
+  })
+  bookingDates: {
+    hotelDetails: any;
+    booking: any[];
+  }[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
