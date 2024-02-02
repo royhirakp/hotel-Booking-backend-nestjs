@@ -14,4 +14,16 @@ export class SingUpDto {
   @IsString()
   @MinLength(6, { message: 'password length should be 6' })
   readonly password: string;
+
+  @IsNotEmpty()
+  @IsString()
+  age: string;
+
+  @IsNotEmpty()
+  @IsString()
+  country: string;
+
+  @IsNotEmpty()
+  @IsString()
+  gender: string;
 }

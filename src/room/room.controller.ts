@@ -8,6 +8,7 @@ import {
   UseGuards,
   Param,
   NotFoundException,
+  Put,
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -19,7 +20,7 @@ export class RoomController {
   constructor(
     // private itemService: RoomService,
     private readonly cloudanaryService: CloudinaryuplodeService,
-    private readonly roomDataUpload: RoomService,
+    private readonly roomService: RoomService,
   ) {}
 
   @Post('upload')
@@ -29,38 +30,50 @@ export class RoomController {
     @Body()
     room: any, //room dto
   ) {
-    try {
-      // const result = await this.cloudanaryService.uploadImage(file.path);
-      // console.log(result.url);
-
-      const data = [];
-      const upload = await this.roomDataUpload.uploadRoomData(
-        'result.url',
-        room,
-      );
-      return upload;
-      // console.log(file);
-      // return { file };
-    } catch (error) {
-      console.log('error on uploding', error);
-      throw new Error('Failed to uplode');
-    }
+    const upload = await this.roomService.uploadRoomData('result.url', room);
+    return upload;
   }
 
   @Get('/home')
   getRoomsForHomePage() {
-    return this.roomDataUpload.getRoomDataForHomePage();
+    return this.roomService.getRoomDataForHomePage();
   }
   @Get('/all')
   getAllRooms() {
-    return this.roomDataUpload.getAllRooms();
+    return this.roomService.getAllRooms();
   }
   @Get('/unit/:id')
   getRoomsById(@Param('id') id: string) {
-    return this.roomDataUpload.getRoomDataById(id);
+    return this.roomService.getRoomDataById(id);
+  }
+
+  @Post('/bookRoom')
+  bookrooms(
+    @Body('roomId') roomId: string,
+    @Body('monthAndDate')
+    monthAndDate: { monthName: string; dates: string[] }[],
+    @Body('userId') userId: string,
+  ) {
+    return this.roomService.bookRoom(roomId, monthAndDate, userId);
+  }
+
+  @Get('/search/:place')
+  searchRooms(@Param('place') place: string) {
+    return this.roomService.searchRoomsByPlace(place);
+  }
+
+  @Put('/comment')
+  postACommentR(
+    @Body('roomId') roomId: string,
+    @Body('commentData')
+    commentData: any,
+  ): Promise<any> {
+    // console.log(commentData, roomId);
+    // return { stra: 'sshssh' };
+    return this.roomService.postAComment(roomId, commentData);
   }
 }
-
+//post a comment is paining
 // @Get()
 // @UseGuards(AuthGuard())
 // async getAllItmes(): Promise<any> {

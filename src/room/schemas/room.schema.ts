@@ -15,6 +15,9 @@ export class Room extends Document {
   title: string;
 
   @Prop({ required: true })
+  keywordForPlaces: string[];
+
+  @Prop({ required: true })
   describtion: string;
 
   @Prop({ type: Object, required: true })
@@ -50,9 +53,9 @@ export class Room extends Document {
     type: [
       {
         userName: String,
-        messege: String,
+        message: String,
         userImage: String,
-        ratting: Number,
+        rating: Number,
         userEmail: String,
       },
     ],

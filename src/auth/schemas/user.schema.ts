@@ -33,7 +33,12 @@ export class User extends Document {
     type: [
       {
         hotelDetails: SchemaTypes.Mixed,
-        booking: [SchemaTypes.Date],
+        booking: [
+          {
+            monthName: String,
+            dates: Array,
+          },
+        ],
       },
     ],
     required: true,

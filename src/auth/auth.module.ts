@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from './schemas/user.schema';
+import { User, UserSchema } from './schemas/user.schema';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserSingupOtpSchema } from './schemas/userSingupOtp.schema';
@@ -25,7 +25,7 @@ import { JwtStrategy } from './jwt.strategy';
     }),
     MongooseModule.forFeature([
       {
-        name: 'User',
+        name: User.name,
         schema: UserSchema,
       },
       {
