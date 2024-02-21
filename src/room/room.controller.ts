@@ -15,7 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { RoomService } from './room.service';
 import { CloudinaryuplodeService } from './cloudinaryuplode.service';
-@Controller('room')
+@Controller('api/v1/room')
 export class RoomController {
   constructor(
     // private itemService: RoomService,
@@ -42,6 +42,7 @@ export class RoomController {
   getAllRooms() {
     return this.roomService.getAllRooms();
   }
+
   @Get('/unit/:id')
   getRoomsById(@Param('id') id: string) {
     return this.roomService.getRoomDataById(id);
@@ -54,6 +55,7 @@ export class RoomController {
     monthAndDate: { monthName: string; dates: string[] }[],
     @Body('userId') userId: string,
   ) {
+    // return { working: 'book romm route', roomId, monthAndDate, userId };
     return this.roomService.bookRoom(roomId, monthAndDate, userId);
   }
 

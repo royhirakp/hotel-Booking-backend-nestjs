@@ -191,7 +191,7 @@ export class AuthService {
       const token = await this.jwtService.signAsync({
         id: user._id,
       });
-      return { success: 1, token };
+      return { success: 1, token, userId: user._id };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;

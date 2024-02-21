@@ -5,7 +5,7 @@ import { SingUpDto } from './dto/signup.dto';
 import { varifyOtpDto } from './dto/verifyOtp.dto';
 import { loginDto } from './dto/login.dto';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
