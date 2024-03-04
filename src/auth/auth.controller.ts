@@ -1,9 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { generateOtpDto } from './dto/generateOtp.dto';
 import { SingUpDto } from './dto/signup.dto';
 import { varifyOtpDto } from './dto/verifyOtp.dto';
-import { loginDto } from './dto/login.dto';
+import {
+  ForgetPasswordDto,
+  ForgetPasswordDto_tokenGeneration,
+  loginDto,
+} from './dto/login.dto';
+import { GoogleLoginDto } from './dto/GoogleLogin.dto';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -29,6 +34,29 @@ export class AuthController {
   @Post('/logIn')
   logIn(@Body() loginDto: loginDto) {
     return this.authService.login(loginDto);
+  }
+  @Post('/google_login')
+  googleLogin(@Body() GoogleLoginDto: GoogleLoginDto) {
+    return this.authService.googleLogin(GoogleLoginDto);
+  }
+  @Post('/forget_password_send_mail_with_token')
+  forgetPasswordTokenLinkSend(
+    @Body()
+    ForgetPasswordDto_tokenGeneration: ForgetPasswordDto_tokenGeneration,
+  ) {
+    return this.authService.forgetPasswordTokenLinkSend(
+      ForgetPasswordDto_tokenGeneration,
+    );
+  }
+  @Post('/forget_password/:token')
+  forgetPassword(
+    @Param('token') token: string,
+    @Body() forgetPasswordDto: ForgetPasswordDto,
+  ) {
+    return this.authService.forgetPassword_tokenVerification(
+      token,
+      forgetPasswordDto,
+    );
   }
 
   @Get('/allUser')

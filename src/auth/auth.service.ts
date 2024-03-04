@@ -13,22 +13,35 @@ import { SingUpDto } from './dto/signup.dto';
 import { UserSingupOtp } from './schemas/userSingupOtp.schema';
 import { varifyOtpDto } from './dto/verifyOtp.dto';
 import * as bcrypt from 'bcryptjs';
-import { loginDto } from './dto/login.dto';
+import {
+  ForgetPasswordDto,
+  ForgetPasswordDto_tokenGeneration,
+  loginDto,
+} from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { GoogleLoginDto } from './dto/GoogleLogin.dto';
+import { forgetPasswordEmail } from './emailText/email';
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-
     @InjectModel(UserSingupOtp.name)
     private userSingUPOtpModel: Model<UserSingupOtp>,
-
     private jwtService: JwtService,
   ) {}
 
   async getAlluser() {
+    // let email:"royhirakp@gmmail.com"
+    // const JwtToken = await this.jwtService.signAsync({
+    //   email,
+    // });
+
+    // console.log(JwtToken)
+
+    // jwt to get the email
     const all_user = await this.userModel.find();
     return all_user;
   }
@@ -176,6 +189,51 @@ export class AuthService {
       );
     }
   }
+
+  async googleLogin(GoogleLoginDto: GoogleLoginDto): Promise<any> {
+    try {
+      // console.log(GoogleLoginDto);
+      const { email, name, sub, picture } = GoogleLoginDto;
+      let Exist_user = await this.userModel.findOne({ email });
+      if (Exist_user) {
+        // verify the user by the unic id "sub"(that generate by the google )
+        let sub_existing = Exist_user?.sub;
+        if (sub !== sub_existing) {
+          // user is not varified
+          throw new UnauthorizedException(
+            'Invalid user , sub is not same in google login response // or login by your email and password ',
+          );
+        }
+        // success full login
+        const token = await this.jwtService.signAsync({
+          id: Exist_user._id,
+        });
+
+        return { success: 1, token, userId: Exist_user._id };
+      } else {
+        // if user login by googl for the first time
+        const new_User = await this.userModel.create({
+          name,
+          email,
+          picture,
+          sub,
+        });
+        const token = await this.jwtService.signAsync({
+          id: new_User._id,
+        });
+        return { success: 2, token, userId: new_User._id };
+      }
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while processing the request',
+      );
+    }
+  }
+
   async login(loginDto: loginDto): Promise<any> {
     try {
       const { email, password } = loginDto;
@@ -188,6 +246,7 @@ export class AuthService {
       if (!passwordMatched) {
         throw new UnauthorizedException('wrong password');
       }
+
       const token = await this.jwtService.signAsync({
         id: user._id,
       });
@@ -202,5 +261,130 @@ export class AuthService {
       );
     }
   }
+
+  async forgetPasswordTokenLinkSend(
+    ForgetPasswordDto_tokenGeneration: ForgetPasswordDto_tokenGeneration,
+  ): Promise<any> {
+    try {
+      const { email } = ForgetPasswordDto_tokenGeneration;
+
+      // generate token by jwt
+      const jwtToken = await this.jwtService.signAsync({ email });
+
+      let emailText = forgetPasswordEmail(jwtToken);
+      // Extract the email from the payload
+      // const decodedToken = await this.jwtService.verifyAsync(jwtToken);
+      // Extract the email from the payload
+
+      // save the token in to data user data
+      const user = await this.userModel.updateOne(
+        { email },
+        {
+          $set: {
+            token_for_forget_Password: jwtToken,
+          },
+        },
+      );
+      // send a link to the user so that user can use it for change the password
+
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.USER_EMAIL,
+          pass: process.env.USER_EMAIL_KEY,
+        },
+      });
+
+      await transporter.sendMail(
+        {
+          from: 'royhiark@gmail.com', // sender address
+          to: email, // list of receivers
+          subject: 'Hotel Booking page , Fo!!!!!    forget password',
+          text: ` Forget password MAIL`, // plain text body
+          html: emailText, // html body
+        },
+
+        (error, info) => {
+          if (error) {
+            console.log(error);
+            return {
+              status: false,
+              error,
+            };
+          } else {
+            return {
+              status: true,
+              msg: 'eamil send susecfull',
+            };
+          }
+        },
+      );
+
+      return {
+        user,
+        email,
+        status: 'email send',
+      };
+    } catch (error) {}
+  }
+
+  async forgetPassword_tokenVerification(
+    token: string,
+    forgetPasswordDto: ForgetPasswordDto,
+  ): Promise<any> {
+    try {
+      const { password } = forgetPasswordDto;
+      const decodedToken = await this.jwtService.verifyAsync(token);
+      const email = decodedToken['email'];
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        throw new UnauthorizedException('Invalid email, user not exist');
+      }
+
+      if (user?.token_for_forget_Password === token) {
+        //change the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log(hashedPassword);
+        //update the new password
+        const user = await this.userModel.updateOne(
+          { email },
+          {
+            $set: {
+              password: hashedPassword,
+              token_for_forget_Password: '',
+            },
+          },
+        );
+        return {
+          status: 1,
+          data: 'password changed suscefully',
+          user,
+        };
+
+        // delete the token from the password
+      } else {
+        // if user notvarify the token
+        const user = await this.userModel.updateOne(
+          { email },
+          {
+            $set: {
+              token_for_forget_Password: '',
+            },
+          },
+        );
+        throw new UnauthorizedException('invalid link');
+        //delete the token form the user data
+      }
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        'An error occurred while processing login',
+      );
+    }
+  }
+
   async deleteUser() {}
 }

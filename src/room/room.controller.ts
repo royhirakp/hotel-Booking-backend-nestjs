@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { RoomService } from './room.service';
 import { CloudinaryuplodeService } from './cloudinaryuplode.service';
+
 @Controller('api/v1/room')
 export class RoomController {
   constructor(

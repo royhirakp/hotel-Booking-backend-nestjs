@@ -4719,7 +4719,11 @@ export class RoomService {
       });
       return roomsArray;
       // let roomsArray = await this.roomModel.find({ keywordForPlaces: place });
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+
+      throw new InternalServerErrorException('Internal server error occurred.');
+    }
   }
 
   async postAComment(roomId: string, commentData: CommentRequest) {

@@ -12,6 +12,12 @@ export class User extends Document {
   email: string;
 
   @Prop()
+  picture: string;
+  // unic number for google login / genarate by google
+  @Prop()
+  sub: string;
+
+  @Prop()
   password: string;
 
   @Prop()
@@ -19,6 +25,9 @@ export class User extends Document {
 
   @Prop()
   token: string;
+
+  @Prop()
+  token_for_forget_Password: string;
 
   @Prop()
   age: string;
