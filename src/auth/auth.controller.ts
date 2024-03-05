@@ -30,7 +30,6 @@ export class AuthController {
 
   @Post('/signup')
   signup(@Body() SignupDto: SingUpDto) {
-    // console.log('SignupDtoSignupDto== ', SignupDto);
     return this.authService.singUp(SignupDto);
   }
 
@@ -42,6 +41,8 @@ export class AuthController {
   googleLogin(@Body() GoogleLoginDto: GoogleLoginDto) {
     return this.authService.googleLogin(GoogleLoginDto);
   }
+
+  //forget password
   @Post('/forget_password_send_mail_with_token')
   forgetPasswordTokenLinkSend(
     @Body()
@@ -60,7 +61,14 @@ export class AuthController {
       token,
       forgetPasswordDto,
     );
+    // console.log(token, forgetPasswordDto);
+    // return {
+    //   sucess: 'email',
+    //   token,
+    //   forgetPasswordDto,
+    // };
   }
+  //reset password
 
   @Post('/reset_password_otpGeneration')
   resetPasswordOtpGeneration(@Body() genegenerateOtpDto: GenerateOtpDto) {

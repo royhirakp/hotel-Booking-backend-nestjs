@@ -16,7 +16,7 @@ export function forgetPasswordEmail(token: string) {
       <p>please click on the link for reset the password :</p>
 
       <a href="http://localhost:3002/forgetPassword/${token}">click here</a>
-      <p>(production mode)</p>
+      <p>(Dev mode)</p>
     </div>
     <div
       style="
@@ -30,7 +30,7 @@ export function forgetPasswordEmail(token: string) {
       <a href="https://hotel-booking-appp-nextjs.vercel.app/forgetPassword/${token}"
         >click here</a
       >
-      <p>(Dev mode)</p>
+      <p>(production mode)</p>
     </div>
   </div>
 </body>

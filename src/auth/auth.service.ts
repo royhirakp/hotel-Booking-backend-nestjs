@@ -144,10 +144,8 @@ export class AuthService {
   async verifySignupOtp(verifyOtpDto: varifyOtpDto) {
     try {
       let { email, otp } = verifyOtpDto;
-      console.log(verifyOtpDto);
 
       let userOtpData = await this.userSingUPOtpModel.findOne({ email });
-      console.log('userOtpData==', userOtpData);
 
       if (userOtpData?.otp === otp) {
         return { status: true };
@@ -363,7 +361,6 @@ export class AuthService {
       if (user?.token_for_forget_Password === token) {
         //change the password
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log(hashedPassword);
         //update the new password
         const user = await this.userModel.updateOne(
           { email },
@@ -427,8 +424,6 @@ export class AuthService {
           },
         },
       );
-
-      console.log(otp, user);
 
       // send the otp to the user mail
       const transporter = nodemailer.createTransport({
@@ -501,7 +496,6 @@ export class AuthService {
       // change the password
       //change the password
       const hashedPassword = await bcrypt.hash(password, 10);
-      console.log(hashedPassword);
       //update the new password
       const user = await this.userModel.updateOne(
         { email },
