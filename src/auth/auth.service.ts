@@ -8,11 +8,15 @@ import {
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { generateOtpDto } from './dto/generateOtp.dto';
+import {
+  GenerateOtpDto,
+  ResetPassword_otp_Verification,
+} from './dto/generateOtp.dto';
 import { SingUpDto } from './dto/signup.dto';
 import { UserSingupOtp } from './schemas/userSingupOtp.schema';
 import { varifyOtpDto } from './dto/verifyOtp.dto';
 import * as bcrypt from 'bcryptjs';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import {
   ForgetPasswordDto,
   ForgetPasswordDto_tokenGeneration,
@@ -46,13 +50,13 @@ export class AuthService {
     return all_user;
   }
 
-  async genRateOTPforSignup(generateOtpDto: generateOtpDto) {
+  async genRateOTPforSignup(generateOtpDto: GenerateOtpDto) {
     try {
       let { email } = generateOtpDto;
       //check the email is exist in the database or not
 
       let user_exist = await this.userModel.findOne({ email });
-      console.log(user_exist, 'userrr');
+      // console.log(user_exist, 'userrr');
       if (user_exist) {
         throw new ConflictException('email exist');
       }
@@ -262,11 +266,16 @@ export class AuthService {
     }
   }
 
+  // forget password route
   async forgetPasswordTokenLinkSend(
     ForgetPasswordDto_tokenGeneration: ForgetPasswordDto_tokenGeneration,
   ): Promise<any> {
     try {
       const { email } = ForgetPasswordDto_tokenGeneration;
+      const user_exist = await this.userModel.findOne({ email });
+      if (!user_exist) {
+        throw new UnauthorizedException('user not exist');
+      }
 
       // generate token by jwt
       const jwtToken = await this.jwtService.signAsync({ email });
@@ -325,7 +334,17 @@ export class AuthService {
         email,
         status: 'email send',
       };
-    } catch (error) {}
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      } else if (error instanceof JsonWebTokenError) {
+        throw new UnauthorizedException('Invalid token format');
+      }
+
+      throw new InternalServerErrorException(
+        'An error occurred while processing ',
+      );
+    }
   }
 
   async forgetPassword_tokenVerification(
@@ -338,7 +357,7 @@ export class AuthService {
       const email = decodedToken['email'];
       const user = await this.userModel.findOne({ email });
       if (!user) {
-        throw new UnauthorizedException('Invalid email, user not exist');
+        throw new UnauthorizedException('Invalid token');
       }
 
       if (user?.token_for_forget_Password === token) {
@@ -358,7 +377,6 @@ export class AuthService {
         return {
           status: 1,
           data: 'password changed suscefully',
-          user,
         };
 
         // delete the token from the password
@@ -378,13 +396,131 @@ export class AuthService {
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
+      } else if (error instanceof JsonWebTokenError) {
+        throw new UnauthorizedException('Invalid token format');
       }
 
       throw new InternalServerErrorException(
-        'An error occurred while processing login',
+        'An error occurred while processing ',
       );
     }
   }
 
+  async resetPassword_otp_generation(genegenerateOtpDto: GenerateOtpDto) {
+    try {
+      const { email } = genegenerateOtpDto;
+      //check the user is present ot not
+      let user_exist = await this.userModel.findOne({ email });
+
+      if (!user_exist) {
+        throw new UnauthorizedException('email not exist');
+      }
+
+      //create otp
+      let otp = Math.floor(100000 + Math.random() * 900000);
+      // save the otp
+      const user = await this.userModel.updateOne(
+        { email },
+        {
+          $set: {
+            otp_For_reset_password: otp,
+          },
+        },
+      );
+
+      console.log(otp, user);
+
+      // send the otp to the user mail
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.USER_EMAIL,
+          pass: process.env.USER_EMAIL_KEY,
+        },
+      });
+      await transporter.sendMail(
+        {
+          from: 'royhiark@gmail.com', // sender address
+          to: email, // list of receivers
+          subject: 'Hotel Booking page , OTP MAIL',
+          text: ` OTP MAIL mail`, // plain text body
+          html: ` <body style="font-family: system-ui, math, sans-serif">
+              <div>
+                Hotel Booking page , reset password OTP mail
+                <br />
+                  <h1>YOUR RESET OTP IS : ${otp}</h1>
+              </div>
+            </body>`, // html body
+        },
+
+        (error, info) => {
+          if (error) {
+            console.log(error);
+            return {
+              status: false,
+              error,
+            };
+          } else {
+            return {
+              status: true,
+              msg: 'eamil send susecfull',
+            };
+          }
+        },
+      );
+
+      return {
+        status: 1,
+        data: 'OTP mail for reset password has sent ',
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while processing ',
+      );
+    }
+  }
+
+  async resetPassword_Verification(
+    resetPassword_otp_Verification: ResetPassword_otp_Verification,
+  ) {
+    try {
+      const { otp, email, password } = resetPassword_otp_Verification;
+      // user exist or not
+      let user_exist = await this.userModel.findOne({ email });
+      if (!user_exist) {
+        throw new UnauthorizedException('email not exist');
+      }
+
+      //otpvarifiction
+      if (otp !== user_exist.otp_For_reset_password) {
+        throw new UnauthorizedException('invalid otp');
+      }
+      // change the password
+      //change the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      console.log(hashedPassword);
+      //update the new password
+      const user = await this.userModel.updateOne(
+        { email },
+        {
+          $set: {
+            password: hashedPassword,
+            otp_For_reset_password: '',
+          },
+        },
+      );
+      return { status: 1, message: 'password changed successfully' };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while processing ',
+      );
+    }
+  }
   async deleteUser() {}
 }

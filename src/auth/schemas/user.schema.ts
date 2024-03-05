@@ -24,6 +24,9 @@ export class User extends Document {
   otp: string;
 
   @Prop()
+  otp_For_reset_password: string;
+
+  @Prop()
   token: string;
 
   @Prop()

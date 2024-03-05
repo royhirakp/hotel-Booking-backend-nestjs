@@ -1,6 +1,9 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { generateOtpDto } from './dto/generateOtp.dto';
+import {
+  GenerateOtpDto,
+  ResetPassword_otp_Verification,
+} from './dto/generateOtp.dto';
 import { SingUpDto } from './dto/signup.dto';
 import { varifyOtpDto } from './dto/verifyOtp.dto';
 import {
@@ -15,7 +18,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/signup/otpG')
-  generateOtP(@Body() generateDto: generateOtpDto) {
+  generateOtP(@Body() generateDto: GenerateOtpDto) {
     return this.authService.genRateOTPforSignup(generateDto);
   }
 
@@ -56,6 +59,20 @@ export class AuthController {
     return this.authService.forgetPassword_tokenVerification(
       token,
       forgetPasswordDto,
+    );
+  }
+
+  @Post('/reset_password_otpGeneration')
+  resetPasswordOtpGeneration(@Body() genegenerateOtpDto: GenerateOtpDto) {
+    return this.authService.resetPassword_otp_generation(genegenerateOtpDto);
+  }
+
+  @Post('/reset_password_verification')
+  resetPassword_Verification(
+    @Body() resetPassword_otp_Verification: ResetPassword_otp_Verification,
+  ) {
+    return this.authService.resetPassword_Verification(
+      resetPassword_otp_Verification,
     );
   }
 
